@@ -1,54 +1,43 @@
+const SKIP_TIME = 10;
+
 function solution(video_len, pos, op_start, op_end, commands) {
-    while(commands.length != 0) {
-        let current_command = commands.shift();
-        pos = isInOpening(pos, op_start, op_end);
-        
-        if(current_command == "prev") {
-            pos = pos.split(":");
-            if(pos[1] >= 10) pos[1] = Number(pos[1]) - 10;
-            else if(pos[0] >= 1) {
-                pos[0] = Number(pos[0]) - 1;
-                pos[1] = 60+Number(pos[1])-10;
-            } else pos = [0, 0];
-            pos = pos.join(":");
-        } else {
-            pos = isInOpening(pos, op_start, op_end);
-            
-            pos = pos.split(":");
-            if(pos[1] < 50) pos[1] = Number(pos[1]) + 10;
-            else {
-                pos[0] = Number(pos[0]) + 1;
-                pos[1] = Number(pos[1])+10-60;
-            }
-            pos = pos.join(":");
-            pos = setMMSS(pos);
-            pos = isInOpening(pos, op_start, op_end);
-            
-            if(pos.replace(":", "") > Number(video_len.replace(":", ""))) pos = video_len;
+    // 초 단위로 변환
+    let pos_sec = timeToSeconds(pos);
+    const video_len_sec = timeToSeconds(video_len);
+    const op_start_sec = timeToSeconds(op_start);
+    const op_end_sec = timeToSeconds(op_end);
+    
+    // 오프닝 체크
+    pos_sec = isInOpening(pos_sec, op_start_sec, op_end_sec);
+    
+    for(const command of commands) {
+        if(command == "prev"){
+            pos_sec = Math.max(0, pos_sec - SKIP_TIME);
+            // 오프닝 체크
+            pos_sec = isInOpening(pos_sec, op_start_sec, op_end_sec);
+        } else if(command == "next"){
+            pos_sec = Math.min(video_len_sec, pos_sec + SKIP_TIME);
+            // 오프닝 체크
+            pos_sec = isInOpening(pos_sec, op_start_sec, op_end_sec);
         }
     }
-    pos = setMMSS(pos);
-    pos = isInOpening(pos, op_start, op_end);
-    return pos;
+    pos_sec = Math.min(video_len_sec, pos_sec);
+    
+    return secondsToTime(pos_sec);
 }
 
-// 오프닝?
 function isInOpening(pos, op_start, op_end) {
-    let posNum = Number(pos.replace(":", ""));
-    if(posNum >= Number(op_start.replace(":", "")) && posNum < Number(op_end.replace(":", ""))) pos = op_end;
+    if(pos >= op_start && pos < op_end) return pos = op_end;
     return pos;
 }
 
-function setMMSS(pos) {
-    if(pos.split(":")[0].length == 1) {
-        pos = pos.split(":");
-        pos[0] = "0" + pos[0];
-        pos = pos.join(":");
-    }
-    if(pos.split(":")[1].length == 1) {
-        pos = pos.split(":");
-        pos[1] = "0" + pos[1];
-        pos = pos.join(":");
-    }
-    return pos;
+function timeToSeconds(timeStr) {
+    const [mm, ss] = timeStr.split(":").map(Number);
+    return mm * 60 + ss;
+}
+
+function secondsToTime(seconds) {
+    const mm = Math.floor(seconds / 60);
+    const ss = seconds % 60;
+    return `${mm.toString().padStart(2, '0')}:${ss.toString().padStart(2, "0")}`;
 }

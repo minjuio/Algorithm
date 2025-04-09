@@ -2,27 +2,40 @@ function solution(bandage, health, attacks) {
     let currentTime = 0;
     let successCount = 0;
     let currentHealth = health;
-    const attacksLen = attacks[attacks.length-1][0];
-    const [duration, healPerSec, addHeal] = bandage;
+    const lastAttackTime = attacks[attacks.length-1][0];
+    const [duration, healPerSec, bonusHeal] = bandage;
     
-    let nextAttack = attacks.shift();
+    const attacksCopy = [...attacks];
+    let nextAttack = attacksCopy.shift();
     
-    for(let i=0; i<=attacksLen; i++) {
+    for(let i=0; i<=lastAttackTime; i++) {
         if(nextAttack[0] == currentTime) {
-         currentHealth -= nextAttack[1];
+         currentHealth = applyDemage(currentHealth, nextAttack[1]);
          successCount = 0;
-         nextAttack = attacks.shift();
+         nextAttack = attacksCopy.shift();
          if(currentHealth <= 0) return -1;
      } else {
          successCount++;
-         currentHealth += healPerSec;
+         currentHealth = applyHeal(currentHealth, healPerSec);
          if(successCount == duration) {
-             currentHealth += addHeal;
+             currentHealth = applyHeal(currentHealth, bonusHeal);
              successCount = 0;
          }
-         currentHealth = Math.min(currentHealth, health);
+         currentHealth = applyMaxHeal(currentHealth, health);
      }
         currentTime++;
     }
     return currentHealth;
+}
+
+function applyMaxHeal(currentHealth, health){
+    return Math.min(currentHealth, health);
+}
+
+function applyDemage(currentHealth, damage){
+    return currentHealth - damage;
+}
+
+function applyHeal(currentHealth, heal){
+    return currentHealth + heal;
 }

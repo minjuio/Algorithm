@@ -1,22 +1,18 @@
 function solution(n, lost, reserve) {
-    lost.sort((a,b) => a-b);
-    reserve.sort((a,b) => a-b);
+    lost.sort((a,b)=>a-b);
+    reserve.sort((a,b)=>a-b);
+
+    let real_lost = lost.filter((l) => !reserve.includes(l));
+    let real_reserve = reserve.filter((r) => !lost.includes(r));
     
-    let realLost = lost.filter((l)=> !reserve.includes(l));
-    let realReserve = reserve.filter((r)=> !lost.includes(r));
-    
-    let count = n - realLost.length;
-    
-    for(let re of realReserve){
-        if(realLost.includes(re-1)){
-            realLost.splice(realLost.indexOf(re-1), 1);
-            count++;
-            continue;
-        }
-        if(realLost.includes(re+1)){
-            realLost.splice(realLost.indexOf(re+1), 1);
-            count++;
+    for(let i=0; i<=reserve.length; i++){
+        let current = real_reserve.shift();
+
+        if(real_lost.indexOf(current-1) != -1) {
+            real_lost = real_lost.filter((e)=> e != (current-1));
+        } else if(real_lost.indexOf(current+1) != -1) {
+            real_lost = real_lost.filter((e)=> e != (current+1));
         }
     }
-    return count;
+    return n - real_lost.length;
 }
